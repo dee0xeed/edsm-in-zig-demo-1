@@ -28,7 +28,7 @@ tick #10 (nexp = 1)
 tick #11 (nexp = 1)
 ```
 
-* now switch to another terminal and send `SIGTERM` to the `./test
+* now switch to another terminal and send `SIGTERM` to the `./test`
 
 ```
 got signal #15 from PID 1597 after 26 ticks
