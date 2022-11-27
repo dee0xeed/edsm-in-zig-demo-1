@@ -91,6 +91,11 @@ const TestMachine = struct {
         _ = src;
         var buf: [64]u8 = undefined;
         const nr = io.info.io.bytes_avail;
+        if (0 == nr) { // ^D
+            print("EOT\n", .{});
+            std.os.raise(std.os.SIG.TERM) catch unreachable;
+            return;
+        }
         print("have {} bytes\n", .{nr});
         _ = std.os.read(io.id, buf[0..nr]) catch unreachable;
         std.debug.print("you entered '{s}'\n", .{buf[0..nr-1]});
