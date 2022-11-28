@@ -86,7 +86,7 @@ pub const TestMachine = struct {
         var io = @fieldParentPtr(InOut, "es", es);
         var buf: [64]u8 = undefined;
         const nr = io.bytes_avail;
-        if (0 == nr) { // ^D
+        if (0 == nr) { // most likely ^D pressed
             print("EOT\n", .{});
             os.raise(os.SIG.TERM) catch unreachable;
             return;

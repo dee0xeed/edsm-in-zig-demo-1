@@ -33,12 +33,12 @@ const TestMachine = struct {
 
     fn onHeap(a: Allocator, md: *MessageDispatcher) !*StageMachine {
 
-        var me = try StageMachine.onHeap(a, md, "TEST-SM");
-        try me.addStage(Stage{.name = "INIT", .enter = &initEnter, .leave = null});
-        try me.addStage(Stage{.name = "WORK", .enter = &workEnter, .leave = &workLeave});
+        var me = try StageMachine.onHeap(a, md, "TEST-SM", 2);
+        me.stages[0] = .{.name = "INIT", .enter = &initEnter, .leave = null};
+        me.stages[1] = .{.name = "WORK", .enter = &workEnter, .leave = &workLeave};
 
-        var init = &me.stages.items[0];
-        var work = &me.stages.items[1];
+        var init = &me.stages[0];
+        var work = &me.stages[1];
 
         init.setReflex(.sm, Message.M0, Reflex{.transition = work});
         work.setReflex(.tm, Message.T0, Reflex{.action = &workT0});

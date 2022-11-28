@@ -66,8 +66,6 @@ pub const Stage = struct {
     }
 };
 
-pub const StageList = std.ArrayList(Stage);
-
 const StageMachineError = error {
     IsAlreadyRunning,
     HasNoStates,
@@ -78,30 +76,25 @@ pub const StageMachine = struct {
     const Self = @This();
     name: []const u8,
     is_running: bool = false,
-    stages: StageList,
+    stages: []Stage,
     current_stage: *Stage = undefined,
     md: *msgq.MessageDispatcher,
     allocator: Allocator,
     data: ?*anyopaque = null,
 
-    pub fn init(a: Allocator, md: *MessageDispatcher, name: []const u8) StageMachine {
+    pub fn init(a: Allocator, md: *MessageDispatcher, name: []const u8, nstages: u4) StageMachine {
         return StageMachine {
             .name = name,
             .md = md,
-            .stages = StageList.init(a),
+            .stages = a.alloc(Stage, nstages) catch unreachable,
             .allocator = a,
         };
     }
 
-    pub fn onHeap(a: Allocator, md: *MessageDispatcher, name: []const u8) !*StageMachine {
+    pub fn onHeap(a: Allocator, md: *MessageDispatcher, name: []const u8, nstages: u4) !*StageMachine {
         var sm = try a.create(StageMachine);
-        sm.* = init(a, md, name);
+        sm.* = init(a, md, name, nstages);
         return sm;
-    }
-
-    pub fn addStage(self: *Self, st: Stage) !void {
-        var ptr = try self.stages.addOne();
-        ptr.* = st;
     }
 
     pub fn initTimer(self: *Self, tm: *EventSource, seqn: u4) !void {
@@ -128,7 +121,6 @@ pub const StageMachine = struct {
         const row = @enumToInt(msg.esk);
         const col = msg.sqn;
         const current_stage = self.current_stage;
-        // print("row = {}, col = {}\n", .{row, col});
         if (current_stage.reflexes[row][col]) |refl| {
             switch (refl) {
                 .action => |func| func(self, msg.src, msg.ptr),
@@ -165,12 +157,12 @@ pub const StageMachine = struct {
 
     pub fn run(self: *Self) !void {
 
-        if (0 == self.stages.items.len)
+        if (0 == self.stages.len)
             return error.HasNoStates;
         if (self.is_running)
             return error.IsAlreadyRunning;
 
-        self.current_stage = &self.stages.items[0];
+        self.current_stage = &self.stages[0];
         if (self.current_stage.enter) |hello| {
             hello(self);
         }
