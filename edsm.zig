@@ -60,7 +60,7 @@ pub const Stage = struct {
     },
 
     pub fn setReflex(self: *Stage, esk: EventSourceKind, seqn: u4, refl: Reflex) void {
-        const row: u8 = @enumToInt(esk);
+        const row: u8 = @intFromEnum(esk);
         const col: u8 = seqn;
         self.reflexes[row][col] = refl;
     }
@@ -118,7 +118,7 @@ pub const StageMachine = struct {
 
     /// state machine engine
     pub fn reactTo(self: *Self, msg: Message) void {
-        const row = @enumToInt(msg.esk);
+        const row: u8 = @intFromEnum(msg.esk);
         const col = msg.sqn;
         const current_stage = self.current_stage;
         if (current_stage.reflexes[row][col]) |refl| {

@@ -52,7 +52,7 @@ const TestMachine = struct {
     fn initEnter(me: *StageMachine) void {
 
         me.data = me.allocator.create(PrivateData) catch unreachable;
-        var pd = @ptrCast(*PrivateData, @alignCast(@alignOf(*PrivateData), me.data));
+        var pd: *PrivateData = @ptrCast(@alignCast(me.data));
 
         me.initTimer(&pd.tm0, Message.T0) catch unreachable;
         pd.ticks = 0;
@@ -68,7 +68,7 @@ const TestMachine = struct {
     }
 
     fn workEnter(me: *StageMachine) void {
-        var pd = @ptrCast(*PrivateData, @alignCast(@alignOf(*PrivateData), me.data));
+        var pd: *PrivateData = @ptrCast(@alignCast(me.data));
         pd.tm0.enable(&me.md.eq, .{interval}) catch unreachable;
         pd.io0.enable(&me.md.eq, .{}) catch unreachable;
         pd.sg0.enable(&me.md.eq, .{}) catch unreachable;
@@ -78,8 +78,8 @@ const TestMachine = struct {
     }
 
     fn workT0(me: *StageMachine, src: ?*StageMachine, data: ?*anyopaque) void {
-        var tm = @ptrCast(*EventSource, @alignCast(@alignOf(*EventSource), data));
-        var pd = @ptrCast(*PrivateData, @alignCast(@alignOf(*PrivateData), me.data));
+        var tm: *EventSource = @ptrCast(@alignCast(data));
+        var pd: *PrivateData = @ptrCast(@alignCast(me.data));
         _ = src;
         pd.ticks += 1;
         print("tick #{} (nexp = {})\n", .{pd.ticks, tm.info.tm.nexp});
@@ -87,7 +87,7 @@ const TestMachine = struct {
     }
 
     fn workD0(me: *StageMachine, src: ?*StageMachine, data: ?*anyopaque) void {
-        var io = @ptrCast(*EventSource, @alignCast(@alignOf(*EventSource), data));
+        var io: *EventSource = @ptrCast(@alignCast(data));
         _ = src;
         var buf: [64]u8 = undefined;
         const nr = io.info.io.bytes_avail;
@@ -103,9 +103,9 @@ const TestMachine = struct {
     }
 
     fn workS0(me: *StageMachine, src: ?*StageMachine, data: ?*anyopaque) void {
-        var pd = @ptrCast(*PrivateData, @alignCast(@alignOf(*PrivateData), me.data));
+        var pd: *PrivateData = @ptrCast(@alignCast(me.data));
         _ = src;
-        var sg = @ptrCast(*EventSource, @alignCast(@alignOf(*EventSource), data));
+        var sg: *EventSource = @ptrCast(@alignCast(data));
         var si = sg.info.sg.sig_info;
         print("got signal #{} from PID {} after {} ticks\n", .{si.signo, si.pid, pd.ticks});
         // print("\n\n === {any} === \n", .{si});

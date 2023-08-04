@@ -132,7 +132,8 @@ pub const EventSource = struct {
             .tm => &self.info.tm.nexp,
             else => unreachable,
         };
-        var p2 = @ptrCast([*]u8, @alignCast(@alignOf([*]u8), p1));
+        //var p2 = @ptrCast([*]u8, @alignCast(@alignOf([*]u8), p1));
+        var p2: [*]u8 = @ptrCast(@alignCast(p1));
         var buf = p2[0..@sizeOf(TimerInfo)];
         _ = try std.os.read(self.id, buf[0..]);
     }
@@ -142,7 +143,7 @@ pub const EventSource = struct {
             .sg => &self.info.sg.sig_info,
             else => unreachable,
         };
-        var p2 = @ptrCast([*]u8, @alignCast(@alignOf([*]u8), p1));
+        var p2: [*]u8 = @ptrCast(@alignCast(p1));
         var buf = p2[0..@sizeOf(SigInfo)];
         _ = try std.os.read(self.id, buf[0..]);
     }

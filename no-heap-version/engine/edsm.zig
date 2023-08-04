@@ -1,4 +1,3 @@
-
 const std = @import("std");
 const print = std.debug.print;
 
@@ -8,9 +7,8 @@ const MessageQueue = mq.MessageQueue;
 const Message = mq.Message;
 
 pub const StageMachine = struct {
-
     const Self = @This();
-    const Error = error {
+    const Error = error{
         IsAlreadyRunning,
         HasNoStates,
         StageHasNoReflexes,
@@ -28,9 +26,8 @@ pub const StageMachine = struct {
     md: *MessageDispatcher,
 
     pub const Stage = struct {
-
-        const reactFnPtr = *const fn(me: *StageMachine, src: ?*StageMachine, data: ?*anyopaque) void;
-        const enterFnPtr = *const fn(me: *StageMachine) void;
+        const reactFnPtr = *const fn (me: *StageMachine, src: ?*StageMachine, data: ?*anyopaque) void;
+        const enterFnPtr = *const fn (me: *StageMachine) void;
         const leaveFnPtr = enterFnPtr;
 
         const ReflexKind = enum {
@@ -62,7 +59,7 @@ pub const StageMachine = struct {
         /// row 2: S0 S1 S2 ... S15 : signals
         /// row 3: T0 T1 T2 ... T15 : timers
         /// row 4: F0 F1 F2 ... F15 : file system events
-        reflexes: [nrows][ncols]?Reflex = [nrows][ncols]?Reflex {
+        reflexes: [nrows][ncols]?Reflex = [nrows][ncols]?Reflex{
             [_]?Reflex{null} ** ncols,
             [_]?Reflex{null} ** ncols,
             [_]?Reflex{null} ** ncols,
@@ -70,14 +67,14 @@ pub const StageMachine = struct {
             [_]?Reflex{null} ** ncols,
         },
 
-//        sm: *StageMachine = undefined,
+        //        sm: *StageMachine = undefined,
 
         pub fn setReflex(self: *Stage, code: u8, refl: Reflex) void {
             const row: u8 = code >> 4;
             const col: u8 = code & 0x0F;
             // const sm = @fieldParentPtr(StageMachine, "stages", self);
             if (self.reflexes[row][col]) |_| {
-//                print("{s}/{s} already has relfex for '{c}{}'\n", .{self.sm.name, self.name, esk_tags[row], seqn});
+                //                print("{s}/{s} already has relfex for '{c}{}'\n", .{self.sm.name, self.name, esk_tags[row], seqn});
                 // return error ?
                 unreachable;
             }
@@ -86,11 +83,11 @@ pub const StageMachine = struct {
     };
 
     pub fn init(md: *MessageDispatcher, name: []const u8, stages: []const Stage) StageMachine {
-        var sm = StageMachine {
+        var sm = StageMachine{
             .name = name,
             .md = md,
         };
-        for (stages) |stage, k| {
+        for (stages, 0..) |stage, k| {
             sm.stages[k] = stage;
         }
         sm.n_stages = stages.len;
@@ -106,10 +103,7 @@ pub const StageMachine = struct {
         var sender = if (msg.src) |s| s.name else "OS";
         if (msg.src == self) sender = "SELF";
 
-        print (
-            "{s} @ {s} got '{c}{}' from {s}\n",
-            .{self.name, self.stages[current].name, Stage.esk_tags[row], col, sender}
-        );
+        print("{s} @ {s} got '{c}{}' from {s}\n", .{ self.name, self.stages[current].name, Stage.esk_tags[row], col, sender });
 
         if (self.stages[current].reflexes[row][col]) |refl| {
             switch (refl) {
@@ -125,16 +119,13 @@ pub const StageMachine = struct {
                 },
             }
         } else {
-            print (
-                "\n{s} @ {s} : no reflex for '{c}{}'\n",
-                .{self.name, self.stages[current].name, Stage.esk_tags[row], col}
-            );
+            print("\n{s} @ {s} : no reflex for '{c}{}'\n", .{ self.name, self.stages[current].name, Stage.esk_tags[row], col });
             unreachable;
         }
     }
 
     pub fn msgTo(self: *Self, dst: ?*Self, code: u4, data: ?*anyopaque) void {
-        const msg = Message {
+        const msg = Message{
             .src = self,
             .dst = dst,
             .code = code,
@@ -146,7 +137,6 @@ pub const StageMachine = struct {
     }
 
     pub fn run(self: *Self) !void {
-
         if (0 == self.n_stages)
             return Error.HasNoStates;
         if (self.is_running)
@@ -165,7 +155,7 @@ pub const StageMachine = struct {
                 }
             }
             if (0 == cnt) {
-                print("stage '{s}' of '{s}' has no reflexes\n", .{stage.name, self.name});
+                print("stage '{s}' of '{s}' has no reflexes\n", .{ stage.name, self.name });
                 return Error.StageHasNoReflexes;
             }
         }
